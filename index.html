@@ -51,13 +51,14 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             background: #fff;
-            overflow: hidden;
             position: relative;
+            overflow: visible; 
         }
 
         .ql-container.ql-snow {
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
+            border-top: none !important;
         }
 
         .ql-editor {
@@ -119,23 +120,22 @@
             min-width: 50px;
             box-sizing: border-box;
         }
-        /* نمایش متمایز سطر اول کاندید هدر */
         .ql-editor tr:first-child td {
             background-color: #f8fafc;
             font-weight: bold;
             border-bottom: 2px solid #cbd5e1;
         }
 
-        /* تولبار شناور و فوق‌العاده شیک کنترل جدول مخصوص موبایل */
+        /* تولبار شناور کنترل جدول مخصوص موبایل */
         .table-action-bar {
             position: absolute;
             display: none;
             background: #ffffff;
             border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             border-radius: 30px;
             padding: 4px 8px;
-            z-index: 1000;
+            z-index: 9999;
             gap: 4px;
             direction: rtl;
             align-items: center;
@@ -159,6 +159,32 @@
         .table-action-bar button.delete-btn { color: var(--danger-color); }
         .table-action-bar button.delete-btn:hover { background: var(--danger-light); }
         .table-action-bar .divider { width: 1px; height: 16px; background: #e2e8f0; margin: 0 2px; }
+
+        /* استایل محدوده پیش‌نمایش تصویر اختصاصی */
+        .ql-editor figure {
+            margin: 15px 0;
+            border: 1px dashed #2481cc;
+            padding: 10px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .ql-editor figure img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .ql-editor figcaption {
+            font-size: 13px;
+            color: #475569;
+            margin-top: 6px;
+        }
+        .ql-editor cite {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-top: 2px;
+        }
 
         .preview-container {
             border: 1px solid #ccc;
@@ -213,7 +239,7 @@
 
         .btn-send:active { opacity: 0.8; }
 
-        /* پاپ‌آپ‌ها */
+        /* پاپ‌آب‌ها عمومی اصلی */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -221,7 +247,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            z-index: 100000;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
@@ -234,7 +260,7 @@
             padding: 22px;
             border-radius: 16px;
             width: 85%;
-            max-width: 300px;
+            max-width: 320px;
             text-align: center;
             direction: rtl;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -244,13 +270,17 @@
         
         .modal-inputs {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             margin-bottom: 22px;
-            gap: 15px;
+            gap: 12px;
         }
-        .modal-inputs label { font-size: 13px; color: #64748b; display: flex; flex-direction: column; gap: 6px; width: 50%; text-align: right; }
-        .modal-inputs input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 16px; width: 80%; }
+        .modal-inputs label { font-size: 13px; color: #64748b; display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: right; }
+        .modal-inputs input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
         .modal-inputs input:focus { border-color: var(--tg-theme-button-color); outline: none; }
+        
+        .modal-inputs.grid-inputs { flex-direction: row; gap: 15px; }
+        .modal-inputs.grid-inputs label { width: 50%; }
+        .modal-inputs.grid-inputs input { text-align: center; }
 
         .modal-buttons { display: flex; gap: 10px; justify-content: center; }
         .modal-btn {
@@ -276,16 +306,8 @@
             </span>
             <span class="ql-formats">
                 <button class="ql-blockquote"></button>
-                <button class="ql-code"></button>
+                <button class="ql-code" id="custom-inline-code-btn"></button>
                 <button class="ql-code-block" id="custom-code-block-btn"></button>
-                <select class="ql-code-block-picker" style="display:none;">
-                    <option value="plain" selected>Plain Text</option>
-                    <option value="python">Python</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="html">HTML</option>
-                    <option value="css">CSS</option>
-                    <option value="json">JSON</option>
-                </select>
             </span>
             <span class="ql-formats">
                 <button class="ql-list" value="ordered"></button>
@@ -307,7 +329,8 @@
             </span>
             <span class="ql-formats">
                 <button class="ql-link"></button>
-                <button class="ql-image"></button>
+                <button class="ql-image" type="button"></button>
+                <button class="ql-divider" id="custom-hr-btn" title="درج خط جداکننده"></button>
             </span>
             <span class="ql-formats">
                 <button class="ql-clean"></button>
@@ -334,13 +357,28 @@
     <div class="modal-overlay" id="tableModal">
         <div class="modal">
             <p>ابعاد جدول جدید:</p>
-            <div class="modal-inputs">
+            <div class="modal-inputs grid-inputs">
                 <label>تعداد سطرها <input type="number" id="rowInput" value="3" min="1" max="15"></label>
                 <label>تعداد ستون‌ها <input type="number" id="colInput" value="2" min="1" max="10"></label>
             </div>
             <div class="modal-buttons">
                 <button class="modal-btn" id="insertTableBtn">ایجاد جدول</button>
                 <button class="modal-btn cancel" id="closeTableModal">لغو</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="imageModal">
+        <div class="modal">
+            <p>درج تصویر با ساختار تلگرام:</p>
+            <div class="modal-inputs">
+                <label>لینک مستقیم تصویر (اجباری)<input type="url" id="imgUrlInput" placeholder="https://telegram.org/example/photo.jpg" dir="ltr"></label>
+                <label>توضیحات کپشن (اختیاری)<input type="text" id="imgCapInput" placeholder="توضیحات زیر عکس..."></label>
+                <label>منبع / نام عکاس (اختیاری)<input type="text" id="imgCreditInput" placeholder="Photo Credit..."></label>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="insertImageBtn">درج تصویر</button>
+                <button class="modal-btn cancel" id="closeImageModal">لغو</button>
             </div>
         </div>
     </div>
@@ -356,8 +394,13 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <script>
+        const inlineCodeIcon = `<img src="https://raw.githubusercontent.com/Sachin-chaurasiya/rich-text-editor-icons/refs/heads/main/icons/inline-code.svg" style="width: 16px; height: 16px; vertical-align: middle;"/>`;
         const codeBlockIcon = `<svg viewBox="0 0 18 18"><rect class="ql-even" height="12" width="14" x="2" y="3" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5,7 L7,9 L5,11 M9,11 L13,11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        const hrIcon = `<svg viewBox="0 0 18 18"><line class="ql-stroke" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" x1="2" x2="16" y1="9" y2="9"/></svg>`;
+
+        document.getElementById('custom-inline-code-btn').innerHTML = inlineCodeIcon;
         document.getElementById('custom-code-block-btn').innerHTML = codeBlockIcon;
+        document.getElementById('custom-hr-btn').innerHTML = hrIcon;
 
         const tg = window.Telegram?.WebApp;
         if (tg) {
@@ -368,14 +411,67 @@
             document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
         }
 
-        // فعال‌سازی Quill همراه با پکیج بومی تایید شده جدول
+        const BlockEmbed = Quill.import('blots/block/embed');
+        class TelegramImageBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create();
+                node.setAttribute('contenteditable', 'false');
+                node.setAttribute('data-src', value.src);
+                node.setAttribute('data-caption', value.caption || '');
+                node.setAttribute('data-credit', value.credit || '');
+                
+                node.innerHTML = `
+                    <img src="${value.src}" style="max-width:100%; display:block; margin:0 auto; border-radius:4px;">
+                    ${value.caption ? `<figcaption style="margin-top:5px; font-weight:500;">${value.caption}</figcaption>` : ''}
+                    ${value.credit ? `<cite style="font-style:normal; font-size:11px; opacity:0.7;">${value.credit}</cite>` : ''}
+                `;
+                return node;
+            }
+            static value(node) {
+                return {
+                    src: node.getAttribute('data-src'),
+                    caption: node.getAttribute('data-caption'),
+                    credit: node.getAttribute('data-credit')
+                };
+            }
+        }
+        TelegramImageBlot.blotName = 'telegramImage';
+        TelegramImageBlot.tagName = 'figure';
+        Quill.register(TelegramImageBlot);
+
+        class HorizontalRuleBlot extends BlockEmbed {}
+        HorizontalRuleBlot.blotName = 'hr';
+        HorizontalRuleBlot.tagName = 'hr';
+        Quill.register(HorizontalRuleBlot);
+
+        function selectImageHandler() {
+            imgUrlInput.value = '';
+            imgCapInput.value = '';
+            imgCreditInput.value = '';
+            imageModal.classList.add('active');
+        }
+
         const quill = new Quill('#editor', {
             modules: { 
-                toolbar: '#toolbar',
+                toolbar: {
+                    container: '#toolbar',
+                    handlers: {
+                        'image': selectImageHandler
+                    }
+                },
                 table: true 
             },
             placeholder: 'متن خود را اینجا بنویسید...',
             theme: 'snow'
+        });
+
+        document.getElementById('custom-hr-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const range = quill.getSelection(true);
+            if (range) {
+                quill.insertEmbed(range.index, 'hr', true, Quill.sources.USER);
+                quill.setSelection(range.index + 1, Quill.sources.SILENT);
+            }
         });
 
         const preview = document.getElementById('preview');
@@ -391,40 +487,66 @@
         const tableBar = document.getElementById('tableBar');
         const editorContainer = document.getElementById('editorContainer');
 
-        // باز شدن درست پاپ‌آپ از ابزار بالا
+        const imageModal = document.getElementById('imageModal');
+        const closeImageModal = document.getElementById('closeImageModal');
+        const insertImageBtn = document.getElementById('insertImageBtn');
+        const imgUrlInput = document.getElementById('imgUrlInput');
+        const imgCapInput = document.getElementById('imgCapInput');
+        const imgCreditInput = document.getElementById('imgCreditInput');
+
+        closeImageModal.addEventListener('click', () => imageModal.classList.remove('active'));
+
+        insertImageBtn.addEventListener('click', () => {
+            const url = imgUrlInput.value.trim();
+            if (!url) {
+                alert('لطفاً آدرس لینک تصویر را وارد کنید.');
+                return;
+            }
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'telegramImage', {
+                src: url,
+                caption: imgCapInput.value.trim(),
+                credit: imgCreditInput.value.trim()
+            }, Quill.sources.USER);
+            
+            quill.setSelection(range.index + 1, Quill.sources.SILENT);
+            imageModal.classList.remove('active');
+            quill.focus();
+        });
+
         document.querySelector('.ql-table').addEventListener('click', (e) => {
             e.preventDefault();
             tableModal.classList.add('active');
         });
         closeTableModal.addEventListener('click', () => tableModal.classList.remove('active'));
 
-        // رفع مشکل عدم ساخت ابعاد دلخواه در افزونه بومی Quill 2
         insertTableBtn.addEventListener('click', () => {
             const rows = parseInt(rowInput.value) || 3;
             const cols = parseInt(colInput.value) || 2;
-            
             const tableModule = quill.getModule('table');
-            // متد بومی درج جدول چند در چند
-            tableModule.insertTable(rows, cols);
             
-            tableModal.classList.remove('active');
-            quill.focus();
+            let range = quill.getSelection(true);
+            if (range) {
+                const [line] = quill.getLine(range.index);
+                if (line && line.length() <= 1) {
+                    quill.insertText(range.index, ' ', Quill.sources.SILENT);
+                    quill.setSelection(range.index + 1, Quill.sources.SILENT);
+                }
+                
+                tableModule.insertTable(rows, cols);
+                tableModal.classList.remove('active');
+                setTimeout(() => { quill.focus(); }, 50);
+            }
         });
 
-        // موقعیت‌یابی و نمایش منوی شناور هوشمند زیر سطر و ستون در حال ویرایش
         quill.on('selection-change', (range) => {
             if (!range) return;
-            
-            // پیدا کردن المان دامت تحت انتخاب
             const [leaf] = quill.getLeaf(range.index);
             if (!leaf) return;
-            
             const td = leaf.domNode.parentElement?.closest('td');
             if (td) {
                 const rect = td.getBoundingClientRect();
                 const containerRect = editorContainer.getBoundingClientRect();
-                
-                // قرار دادن دقیق تولبار در مرکز زیر سلول جاری
                 tableBar.style.top = `${rect.bottom - containerRect.top + 8}px`;
                 tableBar.style.left = `${rect.left - containerRect.left + (rect.width/2) - 110}px`;
                 tableBar.style.display = 'flex';
@@ -433,14 +555,12 @@
             }
         });
 
-        // کلیک روی سایر نقاط ادیتور تولبار شناور جدول را مخفی کند
         quill.root.addEventListener('click', (e) => {
             if (!e.target.closest('td')) {
                 tableBar.style.display = 'none';
             }
         });
 
-        // توابع واکنش‌گرا و بومی تغییرات بدون پاک شدن داده‌ها
         document.getElementById('barAddRow').addEventListener('click', (e) => {
             e.preventDefault(); quill.getModule('table').insertRowBelow(); quill.focus();
         });
@@ -454,7 +574,6 @@
             e.preventDefault(); quill.getModule('table').deleteColumn(); tableBar.style.display = 'none'; quill.focus();
         });
 
-        // جهت‌یابی خودکار زبان متون
         quill.on('editor-change', () => {
             const lines = quill.root.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td');
             lines.forEach(line => {
@@ -467,12 +586,37 @@
             });
         });
 
-        // تبدیل‌کننده استاندارد و فیلتر خروجی تلگرام
         function getTelegramStandardHtml() {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = quill.root.innerHTML;
 
-            // کدهای چندخطی
+            const customFigures = Array.from(tempDiv.querySelectorAll('figure[data-src]'));
+            customFigures.forEach(fig => {
+                const src = fig.getAttribute('data-src');
+                const caption = fig.getAttribute('data-caption');
+                const credit = fig.getAttribute('data-credit');
+
+                const correctTelegramFigure = document.createElement('figure');
+                
+                const img = document.createElement('img');
+                img.setAttribute('src', src);
+                correctTelegramFigure.appendChild(img);
+
+                if (caption || credit) {
+                    const figcaption = document.createElement('figcaption');
+                    if (caption) {
+                        figcaption.appendChild(document.createTextNode(caption));
+                    }
+                    if (credit) {
+                        const cite = document.createElement('cite');
+                        cite.appendChild(document.createTextNode(credit));
+                        figcaption.appendChild(cite);
+                    }
+                    correctTelegramFigure.appendChild(figcaption);
+                }
+                fig.parentNode.replaceChild(correctTelegramFigure, fig);
+            });
+
             const codeLines = Array.from(tempDiv.querySelectorAll('.ql-code-block'));
             if (codeLines.length > 0) {
                 let currentPre = null;
@@ -490,7 +634,6 @@
                 });
             }
 
-            // تجمیع بلاک‌کوت
             const quoteLines = Array.from(tempDiv.querySelectorAll('blockquote'));
             if (quoteLines.length > 0) {
                 let currentBlockquote = null;
@@ -506,12 +649,47 @@
                 });
             }
 
-            // تبدیل سطر اول به هدر تمیز تلگرام <th>
+            // بازسازی و پاکسازی ساختار لیست‌ها بر اساس نوع دیتای واقعی آیتم‌ها
+            const listItems = Array.from(tempDiv.querySelectorAll('li'));
+            if (listItems.length > 0) {
+                let currentNewList = null;
+                let currentType = null;
+
+                listItems.forEach(li => {
+                    const isStandardOl = li.parentNode && li.parentNode.tagName.toLowerCase() === 'ol';
+                    const isBullet = li.getAttribute('data-list') === 'bullet' || (!isStandardOl && !li.getAttribute('data-list'));
+                    const targetType = isBullet ? 'ul' : 'ol';
+
+                    if (!currentNewList || currentType !== targetType || li.previousElementSibling?.tagName !== 'LI') {
+                        currentNewList = document.createElement(targetType);
+                        currentType = targetType;
+                        li.parentNode.insertBefore(currentNewList, li);
+                    }
+
+                    const cleanLi = document.createElement('li');
+                    cleanLi.innerHTML = li.innerHTML;
+                    
+                    // حذف تگ‌های span اضافه درون لیست
+                    const spans = cleanLi.querySelectorAll('span');
+                    spans.forEach(s => {
+                        if(!s.textContent.trim()) { s.parentNode.removeChild(s); }
+                        else { s.parentNode.replaceChild(document.createTextNode(s.textContent), s); }
+                    });
+
+                    currentNewList.appendChild(cleanLi);
+                    li.parentNode.removeChild(li);
+                });
+            }
+
+            // پاکسازی تگ‌های خالی لیست قدیمی
+            Array.from(tempDiv.querySelectorAll('ol, ul')).forEach(el => {
+                if (el.children.length === 0) el.parentNode.removeChild(el);
+            });
+
             const tables = Array.from(tempDiv.querySelectorAll('table'));
             tables.forEach(table => {
                 table.setAttribute('bordered', '');
                 table.setAttribute('striped', '');
-                
                 const rows = Array.from(table.querySelectorAll('tr'));
                 if (rows.length > 0) {
                     const firstRowCells = Array.from(rows[0].querySelectorAll('td'));
@@ -523,7 +701,6 @@
                 }
             });
 
-            // حذف ویژگی‌های اضافی بجز استانداردهای جدول و تگ‌ها
             const allElements = tempDiv.getElementsByTagName('*');
             for (let i = 0; i < allElements.length; i++) {
                 const el = allElements[i];
@@ -544,9 +721,7 @@
             }
 
             let rawHtml = tempDiv.innerHTML;
-            
-            // مرتب‌سازی بیوتیفایر تگ‌ها
-            const blockTags = ['p', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'table', 'tr', 'th', 'td'];
+            const blockTags = ['p', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'table', 'tr', 'th', 'td', 'figure', 'figcaption', 'hr'];
             blockTags.forEach(tag => {
                 const openReg = new RegExp(`(<${tag}[^>]*>)`, 'g');
                 const closeReg = new RegExp(`(</${tag}>)`, 'g');
