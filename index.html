@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ادیتور پیشرفته تلگرام</title>
+    <title>Rich Text Editor</title>
     
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
     
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
@@ -21,7 +24,9 @@
             --danger-color: #ef4444;
             --danger-light: #fee2e2;
         }
-
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
         body {
             font-family: 'Vazirmatn', sans-serif;
             background-color: var(--tg-theme-bg-color);
@@ -35,6 +40,30 @@
             min-height: 100vh;
         }
 
+        body.lang-fa {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 5px;
+        }
+
+        .lang-switch-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lang-switch-btn:hover { background: #e2e8f0; }
+
         .ql-toolbar.ql-snow {
             direction: ltr;
             text-align: left;
@@ -43,16 +72,12 @@
             background: #fafafa;
         }
 
-        .ql-snow .ql-picker.ql-code-block-picker {
-            width: 100px;
-        }
-
         .editor-container {
             border: 1px solid #ccc;
             border-radius: 8px;
             background: #fff;
             position: relative;
-            overflow: visible; 
+            overflow: visible;
         }
 
         .ql-container.ql-snow {
@@ -68,13 +93,24 @@
             color: #000000;
         }
 
-        .ql-editor p, .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6, .ql-editor li {
+        body.lang-fa .ql-editor p, body.lang-fa .ql-editor h1, body.lang-fa .ql-editor h2, 
+        body.lang-fa .ql-editor h3, body.lang-fa .ql-editor h4, body.lang-fa .ql-editor h5, 
+        body.lang-fa .ql-editor h6, body.lang-fa .ql-editor li {
             direction: auto;
             text-align: initial;
             font-family: 'Vazirmatn', sans-serif;
         }
+        /* تنظیم جهت و نحوه نمایش نشانگرهای لیست راست‌چین */
+        .ql-editor li.ql-direction-rtl::before {
+            direction: ltr !important;
+        }
 
-        /* کد درون‌خطی */
+        sub {
+            font-size: x-small;
+        }
+        sup {
+            font-size: x-small;
+        }
         .ql-editor code {
             font-family: monospace !important;
             background-color: #f5f5f5;
@@ -84,50 +120,79 @@
             direction: ltr !important;
         }
 
-        /* کدبلاک */
-        .ql-editor .ql-code-block {
+        .ql-editor .ql-code-block-container {
             direction: ltr !important;
             text-align: left !important;
-            font-family: monospace !important;
             background-color: #23241f !important;
-            color: #f8f8f2 !important;
-            display: block;
-            padding: 1px 12px;
-            margin: 0;
-            border-radius: 0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 8px 0;
         }
-        
-        .ql-editor .ql-code-block:first-of-type { border-top-left-radius: 6px; border-top-right-radius: 6px; margin-top: 4px; }
-        .ql-editor .ql-code-block:last-of-type { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; margin-bottom: 4px; }
+        .ql-editor .ql-code-block {
+            font-family: monospace !important;
+            color: #f8f8f2 !important;
+            background: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
 
-        /* استایل جدول در ادیتور */
+        /* Math and Details styling and interactive cursor indicator */
+        tg-math-block, tg-math, tg-details-block {
+            cursor: pointer;
+            transition: outline 0.2s ease;
+        }
+        tg-math-block:hover, tg-math:hover, tg-details-block:hover {
+            outline: 2px dashed var(--tg-theme-button-color);
+        }
+
+        tg-math-block {
+            display: block;
+            margin: 12px 0;
+            padding: 14px;
+            background: #f8fafc;
+            border-left: 4px solid #0284c7;
+            border-radius: 4px;
+            direction: ltr !important;
+            text-align: center !important;
+            overflow-x: auto;
+        }
+        body.lang-fa tg-math-block {
+            border-left: none;
+            border-right: 4px solid #0284c7;
+        }
+
+        tg-details-block {
+            display: block;
+            margin: 12px 0;
+        }
+
+        tg-math {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            border-radius: 4px;
+            margin: 0 2px;
+            direction: ltr !important;
+            text-align: left !important;
+        }
+
+        tg-math-block .katex-display { margin: 0; }
+
         .ql-editor .ql-table-wrapper {
             overflow-x: auto;
             max-width: 100%;
             margin: 15px 0;
             border: 1.5px solid #e2e8f0;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .ql-editor table {
-            border-collapse: collapse;
-            width: 100%;
-            min-width: 280px;
-        }
-        .ql-editor td {
-            border: 1px solid #cbd5e1;
-            padding: 10px 12px;
-            min-width: 50px;
-            box-sizing: border-box;
-        }
-        .ql-editor tr:first-child td {
-            background-color: #f8fafc;
-            font-weight: bold;
-            border-bottom: 2px solid #cbd5e1;
-        }
+        .ql-editor table { border-collapse: collapse; width: 100%; min-width: 280px; }
+        .ql-editor td { border: 1px solid #cbd5e1; padding: 10px 12px; min-width: 50px; box-sizing: border-box; }
+        .ql-editor tr:first-child td { background-color: #f8fafc; font-weight: bold; border-bottom: 2px solid #cbd5e1; }
 
-        /* تولبار شناور کنترل جدول مخصوص موبایل */
-        .table-action-bar {
+        /* Floating action bars styling */
+        .table-action-bar, .math-action-bar, .details-action-bar {
             position: absolute;
             display: none;
             background: #ffffff;
@@ -137,54 +202,23 @@
             padding: 4px 8px;
             z-index: 9999;
             gap: 4px;
-            direction: rtl;
             align-items: center;
-            transition: opacity 0.2s ease;
         }
-        .table-action-bar button {
-            background: none;
-            border: none;
-            padding: 6px 10px;
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 20px;
-            cursor: pointer;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 2px;
+        .table-action-bar button, .math-action-bar button, .details-action-bar button {
+            background: none; border: none; padding: 6px 12px;
+            font-size: 12px; font-weight: bold; border-radius: 20px;
+            cursor: pointer; color: #334155; display: flex; align-items: center; gap: 4px;
         }
-        .table-action-bar button:hover { background: var(--primary-light); color: var(--tg-theme-button-color); }
-        .table-action-bar button.delete-btn { color: var(--danger-color); }
-        .table-action-bar button.delete-btn:hover { background: var(--danger-light); }
-        .table-action-bar .divider { width: 1px; height: 16px; background: #e2e8f0; margin: 0 2px; }
+        body.lang-fa .table-action-bar button, body.lang-fa .math-action-bar button, body.lang-fa .details-action-bar button { font-family: 'Vazirmatn', sans-serif; }
+        .table-action-bar button:hover, .math-action-bar button:hover, .details-action-bar button:hover { background: var(--primary-light); color: var(--tg-theme-button-color); }
+        .table-action-bar button.delete-btn, .math-action-bar button.delete-btn, .details-action-bar button.delete-btn { color: var(--danger-color); }
+        .table-action-bar button.delete-btn:hover, .math-action-bar button.delete-btn:hover, .details-action-bar button.delete-btn:hover { background: var(--danger-light); }
+        .table-action-bar .divider, .math-action-bar .divider, .details-action-bar .divider { width: 1px; height: 16px; background: #e2e8f0; margin: 0 2px; }
 
-        /* استایل محدوده پیش‌نمایش تصویر اختصاصی */
-        .ql-editor figure {
-            margin: 15px 0;
-            border: 1px dashed #2481cc;
-            padding: 10px;
-            background: #f0f9ff;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .ql-editor figure img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-        }
-        .ql-editor figcaption {
-            font-size: 13px;
-            color: #475569;
-            margin-top: 6px;
-        }
-        .ql-editor cite {
-            font-size: 11px;
-            color: #94a3b8;
-            display: block;
-            margin-top: 2px;
-        }
+        .ql-editor figure { margin: 15px 0; border: 1px dashed #2481cc; padding: 10px; background: #f0f9ff; border-radius: 8px; text-align: center; }
+        .ql-editor figure img { max-width: 100%; height: auto; border-radius: 4px; }
+        .ql-editor figcaption { font-size: 13px; color: #475569; margin-top: 6px; }
+        .ql-editor cite { font-size: 11px; color: #94a3b8; display: block; margin-top: 2px; }
 
         .preview-container {
             border: 1px solid #ccc;
@@ -196,101 +230,81 @@
             flex-grow: 1;
         }
 
-        .preview-header {
-            padding: 8px 12px; 
-            background: #eee; 
-            font-weight: bold; 
-            font-size: 13px; 
-            color: #555;
-            text-align: right;
-            direction: rtl;
-        }
-
+        .preview-header { padding: 8px 12px; background: #eee; font-weight: bold; font-size: 13px; color: #555; }
         .preview-box {
-            padding: 12px;
-            background: #f9f9f9;
-            border-top: 1px solid #eee;
-            overflow-y: auto;
-            flex-grow: 1;
-            max-height: 220px;
-            font-size: 13px;
-            direction: ltr;
-            text-align: left;
-            white-space: pre; 
-            word-break: break-all;
-            color: #222;
-            font-family: 'Courier New', Courier, monospace;
-            line-height: 1.5;
+            padding: 12px; background: #f9f9f9; border-top: 1px solid #eee; overflow-y: auto;
+            flex-grow: 1; max-height: 220px; font-size: 13px; direction: ltr; text-align: left;
+            white-space: pre; word-break: break-all; color: #222; font-family: 'Courier New', Courier, monospace; line-height: 1.5;
         }
 
         .btn-send {
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);
+            border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
+        body.lang-fa .btn-send { font-family: 'Vazirmatn', sans-serif; }
         .btn-send:active { opacity: 0.8; }
 
-        /* پاپ‌آب‌ها عمومی اصلی */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center; z-index: 100000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-        .modal {
-            background: white;
-            padding: 22px;
-            border-radius: 16px;
-            width: 85%;
-            max-width: 320px;
-            text-align: center;
-            direction: rtl;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
+        .modal { background: white; padding: 22px; border-radius: 16px; width: 85%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .modal p { margin: 0 0 18px 0; font-size: 15px; font-weight: bold; color: #1e293b; }
-        
-        .modal-inputs {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 22px;
-            gap: 12px;
-        }
-        .modal-inputs label { font-size: 13px; color: #64748b; display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: right; }
+
+        .modal-inputs { display: flex; flex-direction: column; margin-bottom: 22px; gap: 12px; }
+        .modal-inputs label { font-size: 13px; color: #64748b; display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left; }
+        body.lang-fa .modal-inputs label { text-align: right; }
         .modal-inputs input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        .modal-inputs input:focus { border-color: var(--tg-theme-button-color); outline: none; }
-        
+        body.lang-fa .modal-inputs input, body.lang-fa .modal-inputs textarea { font-family: 'Vazirmatn', sans-serif; }
+        .modal-inputs input:focus, .modal-inputs textarea:focus { border-color: var(--tg-theme-button-color); outline: none; }
+
         .modal-inputs.grid-inputs { flex-direction: row; gap: 15px; }
         .modal-inputs.grid-inputs label { width: 50%; }
         .modal-inputs.grid-inputs input { text-align: center; }
 
         .modal-buttons { display: flex; gap: 10px; justify-content: center; }
-        .modal-btn {
-            background: var(--tg-theme-button-color); color: white; border: none; padding: 10px 24px; border-radius: 8px;
-            font-family: 'Vazirmatn', sans-serif; cursor: pointer; font-weight: bold; font-size: 14px; flex-grow: 1;
-        }
+        .modal-btn { background: var(--tg-theme-button-color); color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; flex-grow: 1; }
+        body.lang-fa .modal-btn { font-family: 'Vazirmatn', sans-serif; }
         .modal-btn.cancel { background: #94a3b8; }
+
+        #mathLivePreview { margin-top: 10px; padding: 8px; background: #f8fafc; border-radius: 6px; min-height: 40px; display: flex; align-items: center; justify-content: center; overflow-x: auto; }
+        .ql-toolbar button svg, .ql-toolbar button img { pointer-events: none; }
+        /* Ensure RTL list markers align correctly and retain correct LTR order (e.g., "1." instead of ".1") */
+        .ql-editor li.ql-direction-rtl::before {
+            direction: ltr !important;
+        }
+        /* mark and Spoiler formats */
+        .ql-editor mark {
+            background-color: #fef08a; /* Soft yellow highlight */
+            color: #000000;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        .ql-editor tg-spoiler {
+            background-color: #475569; /* Slate-600 */
+            color: transparent !important;
+            text-shadow: 0 0 8px rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            padding: 0 4px;
+            display: inline;
+        }
+        .ql-editor tg-spoiler.revealed {
+            background-color: rgba(71, 85, 105, 0.1);
+            color: inherit !important;
+            text-shadow: none;
+        }
     </style>
 </head>
 <body>
+
+    <div class="header-controls">
+        <button class="lang-switch-btn" id="langSwitchBtn">فارسی</button>
+    </div>
 
     <div class="editor-container" id="editorContainer">
         <div id="toolbar">
@@ -299,6 +313,8 @@
                 <button class="ql-italic"></button>
                 <button class="ql-underline"></button>
                 <button class="ql-strike"></button>
+                <button class="ql-mark" title="Highlight Text"></button>
+                <button class="ql-telegramSpoiler" title="Spoiler Text"></button>
             </span>
             <span class="ql-formats">
                 <button class="ql-script" value="sub"></button>
@@ -306,12 +322,15 @@
             </span>
             <span class="ql-formats">
                 <button class="ql-blockquote"></button>
-                <button class="ql-code" id="custom-inline-code-btn"></button>
-                <button class="ql-code-block" id="custom-code-block-btn"></button>
+                <button class="ql-code"></button>
+                <button class="ql-code-block"></button>
+                <button id="custom-math-inline-btn" title="Insert Inline Math"></button>
+                <button id="custom-math-btn" title="Insert Block Math"></button>
             </span>
             <span class="ql-formats">
                 <button class="ql-list" value="ordered"></button>
                 <button class="ql-list" value="bullet"></button>
+                <button class="ql-list" value="check" title="Insert Checklist"></button>
             </span>
             <span class="ql-formats">
                 <select class="ql-header">
@@ -325,12 +344,13 @@
                 </select>
             </span>
             <span class="ql-formats">
-                <button class="ql-table" title="ایجاد جدول"></button>
+                <button class="ql-table" title="Create Table"></button>
+                <button id="custom-details-btn" title="Insert Collapsible"></button>
             </span>
             <span class="ql-formats">
                 <button class="ql-link"></button>
                 <button class="ql-image" type="button"></button>
-                <button class="ql-divider" id="custom-hr-btn" title="درج خط جداکننده"></button>
+                <button id="custom-hr-btn" title="Insert Divider"></button>
             </span>
             <span class="ql-formats">
                 <button class="ql-clean"></button>
@@ -339,54 +359,98 @@
         <div id="editor"></div>
 
         <div class="table-action-bar" id="tableBar">
-            <button id="barAddRow">+ سطر</button>
-            <button id="barAddCol">+ ستون</button>
+            <button id="barAddRow" data-key="addRow">+ Row</button>
+            <button id="barAddCol" data-key="addCol">+ Col</button>
             <div class="divider"></div>
-            <button id="barDelRow" class="delete-btn">- سطر</button>
-            <button id="barDelCol" class="delete-btn">- ستون</button>
+            <button id="barDelRow" class="delete-btn" data-key="delRow">- Row</button>
+            <button id="barDelCol" class="delete-btn" data-key="delCol">- Col</button>
+        </div>
+
+        <div class="math-action-bar" id="mathBar">
+            <button id="barEditMath" data-key="mathEditBtn">✏️ Edit Formula</button>
+            <div class="divider"></div>
+            <button id="barDelMath" class="delete-btn" data-key="mathDelBtn">🗑️ Delete</button>
+        </div>
+
+        <div class="details-action-bar" id="detailsBar">
+            <button id="barEditDetails" data-key="detailsEditBtn">✏️ Edit Details</button>
+            <div class="divider"></div>
+            <button id="barDelDetails" class="delete-btn" data-key="detailsDelBtn">🗑️ Delete</button>
         </div>
     </div>
 
-    <button class="btn-send" id="sendBtn">کپی کردن تگ‌های HTML و ارسال</button>
+    <button class="btn-send" id="sendBtn" data-key="sendBtn">Copy HTML and Send</button>
 
     <div class="preview-container">
-        <div class="preview-header">خروجی HTML استاندارد تلگرام (مرتب شده):</div>
+        <div class="preview-header" id="previewHeader" data-key="previewHeader">Telegram Standard HTML Output (No div tags):</div>
         <div class="preview-box" id="preview"></div>
     </div>
 
     <div class="modal-overlay" id="tableModal">
         <div class="modal">
-            <p>ابعاد جدول جدید:</p>
+            <p data-key="tableTitle">New Table Dimensions:</p>
             <div class="modal-inputs grid-inputs">
-                <label>تعداد سطرها <input type="number" id="rowInput" value="3" min="1" max="15"></label>
-                <label>تعداد ستون‌ها <input type="number" id="colInput" value="2" min="1" max="10"></label>
+                <label><span data-key="tableRows">Rows</span> <input type="number" id="rowInput" value="3" min="1" max="15"></label>
+                <label><span data-key="tableCols">Columns</span> <input type="number" id="colInput" value="2" min="1" max="10"></label>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn" id="insertTableBtn">ایجاد جدول</button>
-                <button class="modal-btn cancel" id="closeTableModal">لغو</button>
+                <button class="modal-btn" id="insertTableBtn" data-key="btnInsert">Create Table</button>
+                <button class="modal-btn cancel" id="closeTableModal" data-key="btnCancel">Cancel</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="imageModal">
         <div class="modal">
-            <p>درج تصویر با ساختار تلگرام:</p>
+            <p data-key="imgTitle">Insert Image Structure:</p>
             <div class="modal-inputs">
-                <label>لینک مستقیم تصویر (اجباری)<input type="url" id="imgUrlInput" placeholder="https://telegram.org/example/photo.jpg" dir="ltr"></label>
-                <label>توضیحات کپشن (اختیاری)<input type="text" id="imgCapInput" placeholder="توضیحات زیر عکس..."></label>
-                <label>منبع / نام عکاس (اختیاری)<input type="text" id="imgCreditInput" placeholder="Photo Credit..."></label>
+                <label><span data-key="imgUrl">Direct Image URL (Required)</span><input type="url" id="imgUrlInput" placeholder="https://telegram.org/image.jpg" dir="ltr"></label>
+                <label><span data-key="imgCaption">Caption Text (Optional)</span><input type="text" id="imgCapInput"></label>
+                <label><span data-key="imgCredit">Credit / Photographer Name (Optional)</span><input type="text" id="imgCreditInput"></label>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn" id="insertImageBtn">درج تصویر</button>
-                <button class="modal-btn cancel" id="closeImageModal">لغو</button>
+                <button class="modal-btn" id="insertImageBtn" data-key="btnInsertImg">Insert Image</button>
+                <button class="modal-btn cancel" id="closeImageModal" data-key="btnCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="mathModal">
+        <div class="modal">
+            <p id="mathModalTitle" data-key="mathTitle">Insert Math Formula (LaTeX):</p>
+            <div class="modal-inputs">
+                <label><span data-key="mathLabel">Enter LaTeX code (without $ symbols):</span><input type="text" id="mathFormulaInput" placeholder="P = A_1 \times (P/A, i, n)" dir="ltr"></label>
+            </div>
+            <div id="mathLivePreview"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="insertMathBtn" data-key="btnInsertMath">Insert Formula</button>
+                <button class="modal-btn cancel" id="closeMathModal" data-key="btnCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal">
+            <p id="detailsModalTitle" data-key="detailsTitle">Insert Collapsible Section (Details):</p>
+            <div class="modal-inputs">
+                <label><span data-key="detailsLabelTitle">Title:</span><input type="text" id="detailsTitleInput" placeholder="Collapsible Title"></label>
+                <label><span data-key="detailsLabelContent">Content:</span><textarea id="detailsContentInput" placeholder="Enter content here..." style="min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit;"></textarea></label>
+                <label style="flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="detailsOpenInput" style="width: auto; margin: 0;">
+                    <span data-key="detailsLabelOpen">Open by default</span>
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="insertDetailsBtn" data-key="btnInsertDetails">Insert Section</button>
+                <button class="modal-btn cancel" id="closeDetailsModal" data-key="btnCancel">Cancel</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <p>متن HTML با موفقیت کپی شد!<br>حالا می‌توانید به ربات برگردید و آن را پیست (Paste) کنید.</p>
-            <button class="modal-btn" id="modalClose">متوجه شدم</button>
+            <p id="successMessage" data-key="successMessage">HTML successfully copied!<br>You can now return to the bot and paste it.</p>
+            <button class="modal-btn" id="modalClose" data-key="btnOk">Got it</button>
         </div>
     </div>
 
@@ -394,372 +458,719 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <script>
-        const inlineCodeIcon = `<img src="https://raw.githubusercontent.com/Sachin-chaurasiya/rich-text-editor-icons/refs/heads/main/icons/inline-code.svg" style="width: 16px; height: 16px; vertical-align: middle;"/>`;
-        const codeBlockIcon = `<svg viewBox="0 0 18 18"><rect class="ql-even" height="12" width="14" x="2" y="3" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5,7 L7,9 L5,11 M9,11 L13,11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-        const hrIcon = `<svg viewBox="0 0 18 18"><line class="ql-stroke" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" x1="2" x2="16" y1="9" y2="9"/></svg>`;
+        // ─── TRANSLATIONS CONFIGURATION ──────────────────────────────────────────
+        const translations = {
+            en: {
+                switchBtn: "🇮🇷 فارسی", direction: "ltr", placeholder: "Type your text here...", sendBtn: "📤 Send ",
+                previewHeader: "Output:", tableTitle: "New Table Dimensions:", tableRows: "Rows", tableCols: "Columns",
+                btnInsert: "Create Table", btnCancel: "Cancel", imgTitle: "Insert Image Structure:", imgUrl: "Direct Image URL (Required)",
+                imgCaption: "Caption Text (Optional)", imgCredit: "Credit / Photographer Name (Optional)", btnInsertImg: "Insert Image",
+                mathTitleBlock: "Insert Block Math Formula (LaTeX):", mathTitleInline: "Insert Inline Math Formula (LaTeX):",
+                mathEditTitleBlock: "Edit Block Math Formula (LaTeX):", mathEditTitleInline: "Edit Inline Math Formula (LaTeX):",
+                mathLabel: "Enter LaTeX code (without $ symbols):", btnInsertMath: "Insert Formula",
+                successMessage: "HTML successfully copied!<br>Go back to the bot and paste the text and send it to the bot; then select the HTML option.", btnOk: "Got it",
+                addRow: "+ Row", addCol: "+ Col", delRow: "- Row", delCol: "- Col",
+                mathEditBtn: "✏️ Edit Formula", mathDelBtn: "🗑️ Delete",
+                tBold: "Bold", tItalic: "Italic", tUnderline: "Underline", tStrike: "Strikethrough",
+                tSub: "Subscript", tSuper: "Superscript", tQuote: "Blockquote", tCode: "Inline Code",
+                tCodeBlock: "Code Block", tMathInline: "Insert Inline Math", tMathBlock: "Insert Block Math",
+                tListOrdered: "Ordered List", tListBullet: "Bullet List", tHeader: "Heading Level",
+                tTable: "Insert Table", tLink: "Insert Link", tImage: "Insert Image",
+                tHr: "Insert Divider", tClean: "Remove Formatting", 
+                tMarked: "Highlight / Mark Text", tSpoiler: "Spoiler Text", tListCheck: "Checklist",
+                detailsTitle: "Insert Collapsible Section (Details):",
+                detailsEditTitle: "Edit Collapsible Section (Details):",
+                detailsLabelTitle: "Title:",
+                detailsLabelContent: "Content:",
+                detailsLabelOpen: "Open by default",
+                btnInsertDetails: "Insert Section",
+                detailsEditBtn: "✏️ Edit Details",
+                detailsDelBtn: "🗑️ Delete",
+                tDetails: "Insert Collapsible"
+            },
+            fa: {
+                switchBtn: "🇺🇸 English", direction: "rtl", placeholder: "متن خود را اینجا بنویسید...", sendBtn: "📤 ارسال",
+                previewHeader: "خروجی:", tableTitle: "ابعاد جدول جدید:", tableRows: "تعداد سطرها", tableCols: "تعداد ستون‌ها",
+                btnInsert: "ایجاد جدول", btnCancel: "لغو", imgTitle: "درج تصویر با ساختار تلگرام:", imgUrl: "لینک مستقیم تصویر (اجباری)",
+                imgCaption: "توضیحات کپشن (اختیاری)", imgCredit: "منبع / نام عکاس (اختیاری)", btnInsertImg: "درج تصویر",
+                mathTitleBlock: "درج فرمول ریاضی بلوکی (LaTeX):", mathTitleInline: "درج فرمول ریاضی درون‌خطی (LaTeX):",
+                mathEditTitleBlock: "ویرایش فرمول ریاضی بلوکی (LaTeX):", mathEditTitleInline: "ویرایش فرمول ریاضی درون‌خطی (LaTeX):",
+                mathLabel: "فرمول خود را بدون علائم $ وارد کنید:", btnInsertMath: "ثبت فرمول",
+                successMessage: "متن HTML با موفقیت کپی شد!<br>حالا می‌توانید به ربات برگردید و آن را پیست (Paste) کنید. سپس گزینه HTML را انتخاب کنید.", btnOk: "متوجه شدم",
+                addRow: "+ سطر", addCol: "+ ستون", delRow: "- سطر", delCol: "- ستون",
+                mathEditBtn: "✏️ ویرایش فرمول", mathDelBtn: "🗑️ حذف",
+                tBold: "ضخیم (Bold)", tItalic: "مورب (Italic)", tUnderline: "خط‌زیرین (Underline)", tStrike: "خط‌خورده (Strikethrough)",
+                tSub: "زیرنویس", tSuper: "بالانویس", tQuote: "نقل‌قول (Blockquote)", tCode: "کد درون‌خطی",
+                tCodeBlock: "بلوک کد (Code Block)", tMathInline: "درج فرمول ریاضی درون‌خطی", tMathBlock: "درج فرمول ریاضی بلوکی",
+                tListOrdered: "لیست عددی", tListBullet: "لیست نشانه‌دار", tHeader: "سطح عنوان",
+                tTable: "درج جدول", tLink: "درج لینک", tImage: "درج تصویر",
+                tHr: "درج خط جداکننده", tClean: "پاک کردن استایل متن",
+                tMarked: "هایلایت / نشانه‌گذاری متن", tSpoiler: "متن اسپویلر (محو)", tListCheck: "چک‌لیست",
+                detailsTitle: "درج بخش تاشو (Details):",
+                detailsEditTitle: "ویرایش بخش تاشو (Details):",
+                detailsLabelTitle: "عنوان:",
+                detailsLabelContent: "محتوا:",
+                detailsLabelOpen: "پیش‌فرض باز باشد",
+                btnInsertDetails: "درج بخش",
+                detailsEditBtn: "✏️ ویرایش بخش تاشو",
+                detailsDelBtn: "🗑️ حذف",
+                tDetails: "درج بخش تاشو"
+            }
+        };
 
-        document.getElementById('custom-inline-code-btn').innerHTML = inlineCodeIcon;
-        document.getElementById('custom-code-block-btn').innerHTML = codeBlockIcon;
-        document.getElementById('custom-hr-btn').innerHTML = hrIcon;
+        let currentLang = 'en';
+        function updateLanguages(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            if (lang === 'fa') { document.body.classList.add('lang-fa'); document.body.style.direction = 'rtl'; } 
+            else { document.body.classList.remove('lang-fa'); document.body.style.direction = 'ltr'; }
+            document.getElementById('langSwitchBtn').textContent = t.switchBtn;
+            quill.root.setAttribute('data-placeholder', t.placeholder);
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = t[key];
+                    else if (key === 'successMessage') el.innerHTML = t[key];
+                    else el.textContent = t[key];
+                }
+            });
 
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready(); tg.expand();
-            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#2481cc');
-            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+            const setToolbarTitle = (selector, titleText) => {
+                const el = document.querySelector(selector);
+                if (el) el.setAttribute('title', titleText);
+            };
+            setToolbarTitle('.ql-bold', t.tBold);
+            setToolbarTitle('.ql-italic', t.tItalic);
+            setToolbarTitle('.ql-underline', t.tUnderline);
+            setToolbarTitle('.ql-strike', t.tStrike);
+            setToolbarTitle('.ql-script[value="sub"]', t.tSub);
+            setToolbarTitle('.ql-script[value="super"]', t.tSuper);
+            setToolbarTitle('.ql-blockquote', t.tQuote);
+            setToolbarTitle('.ql-code', t.tCode);
+            setToolbarTitle('.ql-code-block', t.tCodeBlock);
+            setToolbarTitle('#custom-math-inline-btn', t.tMathInline);
+            setToolbarTitle('#custom-math-btn', t.tMathBlock);
+            setToolbarTitle('.ql-list[value="ordered"]', t.tListOrdered);
+            setToolbarTitle('.ql-list[value="bullet"]', t.tListBullet);
+            setToolbarTitle('.ql-list[value="check"]', t.tListCheck);
+            setToolbarTitle('.ql-header', t.tHeader);
+            setToolbarTitle('.ql-table', t.tTable);
+            setToolbarTitle('#custom-details-btn', t.tDetails);
+            setToolbarTitle('.ql-link', t.tLink);
+            setToolbarTitle('.ql-image', t.tImage);
+            setToolbarTitle('#custom-hr-btn', t.tHr);
+            setToolbarTitle('.ql-clean', t.tClean);
+            setToolbarTitle('.ql-mark', t.tMarked);
+            setToolbarTitle('.ql-telegramSpoiler', t.tSpoiler);
         }
 
+        // ─── ICON SVGS ───────────────────────────────────────────────────────────
+        const inlineCodeIconUrl = `https://raw.githubusercontent.com/Sachin-chaurasiya/rich-text-editor-icons/refs/heads/main/icons/inline-code.svg`;
+        const hrIcon = `<svg viewBox="0 0 18 18"><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" x1="2" x2="16" y1="9" y2="9"/></svg>`;
+        const mathBlockIcon = `<svg viewBox="0 0 18 18"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8h2l2 7 3-11h5M11 12l4-4m0 4l-4-4"/></svg>`;
+        const mathInlineIcon = `<svg viewBox="0 0 18 18"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h10M9 4v10M6 14h6"/></svg>`;
+        const detailsIcon = `<svg viewBox="0 0 18 18"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l6 6 6-6"/></svg>`;
+        const markedIcon = `<svg viewBox="0 0 18 18"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 2L4 9v3h3l7-7-3-3z M3 16h12"/></svg>`;
+        const spoilerIcon = `<svg viewBox="0 0 18 18"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 1.5l15 15 M8.5 4.5A5.5 5.5 0 0115 9 M15 9a5.5 5.5 0 01-6.5 4.5M5.5 13.5A5.5 5.5 0 013 9M3 9a5.5 5.5 0 013.5-4.5M9 9a1.5 1.5 0 01-1.5-1.5"/></svg>`;
+        
+        // ─── CUSTOM INLINE BLOTS ────────────────────────────────────────────────
+        const Inline = Quill.import('blots/inline');
+        
+        class MarkedBlot extends Inline {}
+        MarkedBlot.blotName = 'mark';
+        MarkedBlot.tagName = 'mark';
+        Quill.register(MarkedBlot);
+        class TelegramSpoilerBlot extends Inline {}
+        TelegramSpoilerBlot.blotName = 'telegramSpoiler';
+        TelegramSpoilerBlot.tagName = 'tg-spoiler';
+        Quill.register(TelegramSpoilerBlot);
+        
+        // ─── TELEGRAM EMBED MATH BLOTS ───────────────────────────────────────────
         const BlockEmbed = Quill.import('blots/block/embed');
-        class TelegramImageBlot extends BlockEmbed {
+        const InlineEmbed = Quill.import('blots/embed');
+
+        class TelegramMathBlockBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create(); node.setAttribute('contenteditable', 'false');
+                const pureFormula = value.startsWith('$') && value.endsWith('$') ? value.slice(1, -1) : value;
+                node.setAttribute('data-formula', pureFormula);
+                if (window.katex) { try { window.katex.render(pureFormula, node, { displayMode: true, throwOnError: false }); } catch (e) { node.textContent = value; } } 
+                else { node.textContent = value; }
+                return node;
+            }
+            static value(node) { return `$${node.getAttribute('data-formula')}$`; }
+        }
+        TelegramMathBlockBlot.blotName = 'telegramMathBlock'; TelegramMathBlockBlot.tagName = 'tg-math-block'; Quill.register(TelegramMathBlockBlot);
+
+        class TelegramMathInlineBlot extends InlineEmbed {
+            static create(value) {
+                const node = super.create(); node.setAttribute('contenteditable', 'false');
+                const pureFormula = value.startsWith('$') && value.endsWith('$') ? value.slice(1, -1) : value;
+                node.setAttribute('data-formula', pureFormula);
+                if (window.katex) { try { window.katex.render(pureFormula, node, { displayMode: false, throwOnError: false }); } catch (e) { node.textContent = value; } } 
+                else { node.textContent = value; }
+                return node;
+            }
+            static value(node) { return `$${node.getAttribute('data-formula')}$`; }
+        }
+        TelegramMathInlineBlot.blotName = 'telegramMathInline'; TelegramMathInlineBlot.tagName = 'tg-math'; Quill.register(TelegramMathInlineBlot);
+
+        // ─── TELEGRAM EMBED DETAILS BLOT ─────────────────────────────────────────
+        class TelegramDetailsBlot extends BlockEmbed {
             static create(value) {
                 const node = super.create();
                 node.setAttribute('contenteditable', 'false');
-                node.setAttribute('data-src', value.src);
-                node.setAttribute('data-caption', value.caption || '');
-                node.setAttribute('data-credit', value.credit || '');
+                node.setAttribute('data-title', value.title || '');
+                node.setAttribute('data-content', value.content || '');
+                node.setAttribute('data-open', value.open ? 'true' : 'false');
                 
-                node.innerHTML = `
-                    <img src="${value.src}" style="max-width:100%; display:block; margin:0 auto; border-radius:4px;">
-                    ${value.caption ? `<figcaption style="margin-top:5px; font-weight:500;">${value.caption}</figcaption>` : ''}
-                    ${value.credit ? `<cite style="font-style:normal; font-size:11px; opacity:0.7;">${value.credit}</cite>` : ''}
-                `;
+                const details = document.createElement('details');
+                if (value.open) {
+                    details.setAttribute('open', '');
+                }
+                
+                // Style configurations for neat look in Editor
+                details.style.border = '1.5px solid #cbd5e1';
+                details.style.borderRadius = '8px';
+                details.style.background = '#f8fafc';
+                details.style.margin = '10px 0';
+                details.style.overflow = 'hidden';
+                
+                const isRtl = (currentLang === 'fa');
+                details.style.direction = isRtl ? 'rtl' : 'ltr';
+                details.style.textAlign = isRtl ? 'right' : 'left';
+
+                const summary = document.createElement('summary');
+                summary.style.fontWeight = 'bold';
+                summary.style.padding = '10px 14px';
+                summary.style.background = '#f1f5f9';
+                summary.style.cursor = 'pointer';
+                summary.style.outline = 'none';
+                summary.style.userSelect = 'none';
+                summary.textContent = value.title || 'Collapsible Title';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.style.padding = '12px 14px';
+                contentDiv.style.borderTop = '1.5px solid #cbd5e1';
+                contentDiv.style.background = '#ffffff';
+                contentDiv.innerHTML = (value.content || '').replace(/\n/g, '<br>');
+                
+                details.appendChild(summary);
+                details.appendChild(contentDiv);
+                node.appendChild(details);
+
+                summary.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
                 return node;
             }
             static value(node) {
                 return {
-                    src: node.getAttribute('data-src'),
-                    caption: node.getAttribute('data-caption'),
-                    credit: node.getAttribute('data-credit')
+                    title: node.getAttribute('data-title'),
+                    content: node.getAttribute('data-content'),
+                    open: node.getAttribute('data-open') === 'true'
                 };
             }
         }
-        TelegramImageBlot.blotName = 'telegramImage';
-        TelegramImageBlot.tagName = 'figure';
-        Quill.register(TelegramImageBlot);
+        TelegramDetailsBlot.blotName = 'telegramDetails';
+        TelegramDetailsBlot.tagName = 'tg-details-block';
+        Quill.register(TelegramDetailsBlot);
+
+        // ─── OTHER BLOTS DEFINITIONS ─────────────────────────────────────────────
+        class TelegramImageBlot extends BlockEmbed {
+            static create(value) {
+                const node = super.create(); node.setAttribute('contenteditable', 'false');
+                node.setAttribute('data-src', value.src); node.setAttribute('data-caption', value.caption || ''); node.setAttribute('data-credit', value.credit || '');
+                node.innerHTML = `<img src="${value.src}" style="max-width:100%; display:block; margin:0 auto; border-radius:4px;">${value.caption ? `<figcaption style="margin-top:5px; font-weight:500;">${value.caption}</figcaption>` : ''}${value.credit ? `<cite style="font-style:normal; font-size:11px; opacity:0.7;">${value.credit}</cite>` : ''}`;
+                return node;
+            }
+            static value(node) { return { src: node.getAttribute('data-src'), caption: node.getAttribute('data-caption'), credit: node.getAttribute('data-credit') }; }
+        }
+        TelegramImageBlot.blotName = 'telegramImage'; TelegramImageBlot.tagName = 'figure'; Quill.register(TelegramImageBlot);
 
         class HorizontalRuleBlot extends BlockEmbed {}
-        HorizontalRuleBlot.blotName = 'hr';
-        HorizontalRuleBlot.tagName = 'hr';
-        Quill.register(HorizontalRuleBlot);
+        HorizontalRuleBlot.blotName = 'hr'; HorizontalRuleBlot.tagName = 'hr'; Quill.register(HorizontalRuleBlot);
 
         function selectImageHandler() {
-            imgUrlInput.value = '';
-            imgCapInput.value = '';
-            imgCreditInput.value = '';
-            imageModal.classList.add('active');
+            document.getElementById('imgUrlInput').value = ''; document.getElementById('imgCapInput').value = ''; document.getElementById('imgCreditInput').value = '';
+            document.getElementById('imageModal').classList.add('active');
         }
 
+        // ─── INITIALIZE QUILL ────────────────────────────────────────────────────
         const quill = new Quill('#editor', {
-            modules: { 
-                toolbar: {
-                    container: '#toolbar',
-                    handlers: {
-                        'image': selectImageHandler
-                    }
-                },
-                table: true 
-            },
-            placeholder: 'متن خود را اینجا بنویسید...',
+            modules: { toolbar: { container: '#toolbar', handlers: { 'image': selectImageHandler } }, table: true },
             theme: 'snow'
         });
 
-        document.getElementById('custom-hr-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const range = quill.getSelection(true);
-            if (range) {
-                quill.insertEmbed(range.index, 'hr', true, Quill.sources.USER);
+        // ─── ICONS SETUPS ────────────────────────────────────────────────────────
+        const inlineCodeBtn = document.querySelector('.ql-toolbar .ql-code');
+        if (inlineCodeBtn) inlineCodeBtn.innerHTML = `<img src="${inlineCodeIconUrl}" style="width:16px;height:16px;vertical-align:middle;display:block;margin:auto;" alt="inline code">`;
+        const hrBtn = document.getElementById('custom-hr-btn'); if (hrBtn) { hrBtn.innerHTML = hrIcon; hrBtn.className = 'ql-divider'; }
+        const mathBtn = document.getElementById('custom-math-btn'); if (mathBtn) { mathBtn.innerHTML = mathBlockIcon; mathBtn.className = 'ql-math-custom'; }
+        const mathInlineBtn = document.getElementById('custom-math-inline-btn'); if (mathInlineBtn) { mathInlineBtn.innerHTML = mathInlineIcon; mathInlineBtn.className = 'ql-math-custom'; }
+        const detailsBtn = document.getElementById('custom-details-btn'); if (detailsBtn) { detailsBtn.innerHTML = detailsIcon; detailsBtn.className = 'ql-details-custom'; }
+        const markedBtn = document.querySelector('.ql-toolbar .ql-mark');
+        if (markedBtn) markedBtn.innerHTML = markedIcon;
+        const spoilerBtn = document.querySelector('.ql-toolbar .ql-telegramSpoiler');
+        if (spoilerBtn) spoilerBtn.innerHTML = spoilerIcon;
+
+        updateLanguages('en');
+        document.getElementById('langSwitchBtn').addEventListener('click', () => updateLanguages(currentLang === 'en' ? 'fa' : 'en'));
+
+        // ─── MATH CONTEXT AND MODAL MANAGEMENT ───────────────────────────────────
+        const mathModal = document.getElementById('mathModal');
+        const mathFormulaInput = document.getElementById('mathFormulaInput');
+        const mathLivePreview = document.getElementById('mathLivePreview');
+        const mathModalTitle = document.getElementById('mathModalTitle');
+        const mathBar = document.getElementById('mathBar');
+        
+        let targetMathType = 'block'; // 'block' or 'inline'
+        let currentEditingBlotNode = null; // Holds the node if we are editing
+
+        mathBtn.addEventListener('click', (e) => { e.preventDefault(); openMathModal('block', null); });
+        mathInlineBtn.addEventListener('click', (e) => { e.preventDefault(); openMathModal('inline', null); });
+
+        function openMathModal(type, existingNode) {
+            targetMathType = type;
+            currentEditingBlotNode = existingNode;
+            
+            if (existingNode) {
+                const formula = existingNode.getAttribute('data-formula') || '';
+                mathFormulaInput.value = formula;
+                mathModalTitle.textContent = type === 'block' ? translations[currentLang].mathEditTitleBlock : translations[currentLang].mathEditTitleInline;
+            } else {
+                mathFormulaInput.value = '';
+                mathModalTitle.textContent = type === 'block' ? translations[currentLang].mathTitleBlock : translations[currentLang].mathTitleInline;
+            }
+            
+            triggerLivePreview();
+            mathModal.classList.add('active');
+        }
+
+        function triggerLivePreview() {
+            const rawValue = mathFormulaInput.value.trim();
+            if (window.katex && rawValue) { try { window.katex.render(rawValue, mathLivePreview, { displayMode: targetMathType === 'block', throwOnError: false }); } catch(e) {} } 
+            else { mathLivePreview.textContent = rawValue; }
+        }
+
+        mathFormulaInput.addEventListener('input', triggerLivePreview);
+        document.getElementById('closeMathModal').addEventListener('click', () => mathModal.classList.remove('active'));
+
+        document.getElementById('insertMathBtn').addEventListener('click', () => {
+            const formula = mathFormulaInput.value.trim(); if (!formula) return;
+            const blotName = targetMathType === 'block' ? 'telegramMathBlock' : 'telegramMathInline';
+            
+            if (currentEditingBlotNode) {
+                const blot = Quill.find(currentEditingBlotNode);
+                if (blot) {
+                    blot.remove();
+                    const range = quill.getSelection(true);
+                    quill.insertEmbed(range.index, blotName, `$${formula}$`, Quill.sources.USER);
+                    quill.setSelection(range.index + 1, Quill.sources.SILENT);
+                }
+            } else {
+                const range = quill.getSelection(true);
+                quill.insertEmbed(range.index, blotName, `$${formula}$`, Quill.sources.USER);
                 quill.setSelection(range.index + 1, Quill.sources.SILENT);
             }
-        });
-
-        const preview = document.getElementById('preview');
-        const sendBtn = document.getElementById('sendBtn');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalClose = document.getElementById('modalClose');
-        
-        const tableModal = document.getElementById('tableModal');
-        const insertTableBtn = document.getElementById('insertTableBtn');
-        const closeTableModal = document.getElementById('closeTableModal');
-        const rowInput = document.getElementById('rowInput');
-        const colInput = document.getElementById('colInput');
-        const tableBar = document.getElementById('tableBar');
-        const editorContainer = document.getElementById('editorContainer');
-
-        const imageModal = document.getElementById('imageModal');
-        const closeImageModal = document.getElementById('closeImageModal');
-        const insertImageBtn = document.getElementById('insertImageBtn');
-        const imgUrlInput = document.getElementById('imgUrlInput');
-        const imgCapInput = document.getElementById('imgCapInput');
-        const imgCreditInput = document.getElementById('imgCreditInput');
-
-        closeImageModal.addEventListener('click', () => imageModal.classList.remove('active'));
-
-        insertImageBtn.addEventListener('click', () => {
-            const url = imgUrlInput.value.trim();
-            if (!url) {
-                alert('لطفاً آدرس لینک تصویر را وارد کنید.');
-                return;
-            }
-            const range = quill.getSelection(true);
-            quill.insertEmbed(range.index, 'telegramImage', {
-                src: url,
-                caption: imgCapInput.value.trim(),
-                credit: imgCreditInput.value.trim()
-            }, Quill.sources.USER);
             
-            quill.setSelection(range.index + 1, Quill.sources.SILENT);
-            imageModal.classList.remove('active');
+            mathBar.style.display = 'none';
+            mathModal.classList.remove('active'); 
             quill.focus();
         });
 
-        document.querySelector('.ql-table').addEventListener('click', (e) => {
-            e.preventDefault();
-            tableModal.classList.add('active');
+        hrBtn.addEventListener('click', function(e) {
+            e.preventDefault(); const range = quill.getSelection(true);
+            if (range) { quill.insertEmbed(range.index, 'hr', true, Quill.sources.USER); quill.setSelection(range.index + 1, Quill.sources.SILENT); }
         });
-        closeTableModal.addEventListener('click', () => tableModal.classList.remove('active'));
 
-        insertTableBtn.addEventListener('click', () => {
-            const rows = parseInt(rowInput.value) || 3;
-            const cols = parseInt(colInput.value) || 2;
-            const tableModule = quill.getModule('table');
+        // ─── DETAILS CONTEXT AND MODAL MANAGEMENT ─────────────────────────────────
+        const detailsModal = document.getElementById('detailsModal');
+        const detailsTitleInput = document.getElementById('detailsTitleInput');
+        const detailsContentInput = document.getElementById('detailsContentInput');
+        const detailsOpenInput = document.getElementById('detailsOpenInput');
+        const detailsModalTitle = document.getElementById('detailsModalTitle');
+        const detailsBar = document.getElementById('detailsBar');
+
+        let currentEditingDetailsNode = null;
+
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openDetailsModal(null);
+            });
+        }
+
+        function openDetailsModal(existingNode) {
+            currentEditingDetailsNode = existingNode;
+            if (existingNode) {
+                const title = existingNode.getAttribute('data-title') || '';
+                const content = existingNode.getAttribute('data-content') || '';
+                const open = existingNode.getAttribute('data-open') === 'true';
+                
+                detailsTitleInput.value = title;
+                detailsContentInput.value = content;
+                detailsOpenInput.checked = open;
+                detailsModalTitle.textContent = translations[currentLang].detailsEditTitle;
+            } else {
+                detailsTitleInput.value = '';
+                detailsContentInput.value = '';
+                detailsOpenInput.checked = false;
+                detailsModalTitle.textContent = translations[currentLang].detailsTitle;
+            }
+            detailsModal.classList.add('active');
+        }
+
+        document.getElementById('closeDetailsModal').addEventListener('click', () => detailsModal.classList.remove('active'));
+
+        document.getElementById('insertDetailsBtn').addEventListener('click', () => {
+            const title = detailsTitleInput.value.trim() || 'Details';
+            const content = detailsContentInput.value.trim();
+            const isOpen = detailsOpenInput.checked;
             
-            let range = quill.getSelection(true);
-            if (range) {
-                const [line] = quill.getLine(range.index);
-                if (line && line.length() <= 1) {
-                    quill.insertText(range.index, ' ', Quill.sources.SILENT);
+            if (currentEditingDetailsNode) {
+                const blot = Quill.find(currentEditingDetailsNode);
+                if (blot) {
+                    blot.remove();
+                    const range = quill.getSelection(true);
+                    quill.insertEmbed(range.index, 'telegramDetails', { title, content, open: isOpen }, Quill.sources.USER);
                     quill.setSelection(range.index + 1, Quill.sources.SILENT);
                 }
-                
-                tableModule.insertTable(rows, cols);
-                tableModal.classList.remove('active');
-                setTimeout(() => { quill.focus(); }, 50);
+            } else {
+                const range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'telegramDetails', { title, content, open: isOpen }, Quill.sources.USER);
+                quill.setSelection(range.index + 1, Quill.sources.SILENT);
+            }
+            
+            detailsBar.style.display = 'none';
+            detailsModal.classList.remove('active');
+            quill.focus();
+        });
+
+        // ─── FLOATING ACTIONS FOR TABLES, MATH & DETAILS SELECTIONS ──────────────────────
+        const tableModal = document.getElementById('tableModal');
+        const editorContainer = document.getElementById('editorContainer');
+        const tableBar = document.getElementById('tableBar');
+        const tableToolbarBtn = document.querySelector('.ql-toolbar .ql-table');
+        
+        if (tableToolbarBtn) tableToolbarBtn.addEventListener('click', (e) => { e.preventDefault(); tableModal.classList.add('active'); });
+        document.getElementById('closeTableModal').addEventListener('click', () => tableModal.classList.remove('active'));
+
+        document.getElementById('insertTableBtn').addEventListener('click', () => {
+            const rows = parseInt(document.getElementById('rowInput').value) || 3;
+            const cols = parseInt(document.getElementById('colInput').value) || 2;
+            const tableModule = quill.getModule('table'); const range = quill.getSelection(true);
+            if (range) {
+                const [line] = quill.getLine(range.index);
+                if (line && line.length() <= 1) { quill.insertText(range.index, ' ', Quill.sources.SILENT); quill.setSelection(range.index + 1, Quill.sources.SILENT); }
+                tableModule.insertTable(rows, cols); tableModal.classList.remove('active'); setTimeout(() => quill.focus(), 50);
             }
         });
 
-        quill.on('selection-change', (range) => {
-            if (!range) return;
-            const [leaf] = quill.getLeaf(range.index);
-            if (!leaf) return;
-            const td = leaf.domNode.parentElement?.closest('td');
-            if (td) {
-                const rect = td.getBoundingClientRect();
+        // Capture clicks inside editor to toggle Table / Math / Details action bars
+        quill.root.addEventListener('click', (e) => {
+            const mathNode = e.target.closest('tg-math-block, tg-math');
+            const tdNode = e.target.closest('td');
+            const spoilerNode = e.target.closest('tg-spoiler');
+            const detailsNode = e.target.closest('tg-details-block');
+            
+            // Toggle spoiler inside editor
+            if (spoilerNode) {
+                spoilerNode.classList.toggle('revealed');
+            }
+
+            // Handle Details Floating Tool updates
+            if (detailsNode) {
+                tableBar.style.display = 'none';
+                mathBar.style.display = 'none';
+                currentEditingDetailsNode = detailsNode;
+                const rect = detailsNode.getBoundingClientRect();
                 const containerRect = editorContainer.getBoundingClientRect();
-                tableBar.style.top = `${rect.bottom - containerRect.top + 8}px`;
-                tableBar.style.left = `${rect.left - containerRect.left + (rect.width/2) - 110}px`;
-                tableBar.style.display = 'flex';
+                
+                detailsBar.style.top = `${rect.top - containerRect.top - 45}px`; 
+                detailsBar.style.left = `${rect.left - containerRect.left + (rect.width / 2) - 65}px`;
+                detailsBar.style.display = 'flex';
+                detailsBar.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
+                return;
+            } else {
+                detailsBar.style.display = 'none';
+            }
+            
+            // Handle Math Floating Tool updates
+            if (mathNode) {
+                tableBar.style.display = 'none';
+                detailsBar.style.display = 'none';
+                currentEditingBlotNode = mathNode;
+                const rect = mathNode.getBoundingClientRect();
+                const containerRect = editorContainer.getBoundingClientRect();
+                
+                mathBar.style.top = `${rect.top - containerRect.top - 45}px`; 
+                mathBar.style.left = `${rect.left - containerRect.left + (rect.width / 2) - 65}px`;
+                mathBar.style.display = 'flex';
+                mathBar.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
+                return;
+            } else {
+                mathBar.style.display = 'none';
+            }
+
+            // Handle Tables Floating Tool updates
+            if (tdNode) {
+                detailsBar.style.display = 'none';
+                mathBar.style.display = 'none';
+                const rect = tdNode.getBoundingClientRect(); const containerRect = editorContainer.getBoundingClientRect();
+                tableBar.style.top = `${rect.bottom - containerRect.top + 8}px`; tableBar.style.left = `${rect.left - containerRect.left + (rect.width / 2) - 110}px`;
+                tableBar.style.display = 'flex'; tableBar.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
             } else {
                 tableBar.style.display = 'none';
             }
         });
 
-        quill.root.addEventListener('click', (e) => {
-            if (!e.target.closest('td')) {
-                tableBar.style.display = 'none';
-            }
+        // Hide bars on selection change elsewhere
+        quill.on('selection-change', (range) => {
+            if (!range) { tableBar.style.display = 'none'; mathBar.style.display = 'none'; detailsBar.style.display = 'none'; }
         });
 
-        document.getElementById('barAddRow').addEventListener('click', (e) => {
-            e.preventDefault(); quill.getModule('table').insertRowBelow(); quill.focus();
-        });
-        document.getElementById('barAddCol').addEventListener('click', (e) => {
-            e.preventDefault(); quill.getModule('table').insertColumnRight(); quill.focus();
-        });
-        document.getElementById('barDelRow').addEventListener('click', (e) => {
-            e.preventDefault(); quill.getModule('table').deleteRow(); tableBar.style.display = 'none'; quill.focus();
-        });
-        document.getElementById('barDelCol').addEventListener('click', (e) => {
-            e.preventDefault(); quill.getModule('table').deleteColumn(); tableBar.style.display = 'none'; quill.focus();
+        // Floating Bar Operations for Math Node
+        document.getElementById('barEditMath').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!currentEditingBlotNode) return;
+            const type = currentEditingBlotNode.tagName.toLowerCase() === 'tg-math-block' ? 'block' : 'inline';
+            openMathModal(type, currentEditingBlotNode);
         });
 
+        document.getElementById('barDelMath').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!currentEditingBlotNode) return;
+            const blot = Quill.find(currentEditingBlotNode);
+            if (blot) blot.remove();
+            mathBar.style.display = 'none';
+            quill.focus();
+        });
+
+        // Floating Bar Operations for Details Node
+        document.getElementById('barEditDetails').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!currentEditingDetailsNode) return;
+            openDetailsModal(currentEditingDetailsNode);
+        });
+
+        document.getElementById('barDelDetails').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!currentEditingDetailsNode) return;
+            const blot = Quill.find(currentEditingDetailsNode);
+            if (blot) blot.remove();
+            detailsBar.style.display = 'none';
+            quill.focus();
+        });
+
+        // Floating Bar Operations for Tables
+        document.getElementById('barAddRow').addEventListener('click', (e) => { e.preventDefault(); quill.getModule('table').insertRowBelow(); quill.focus(); });
+        document.getElementById('barAddCol').addEventListener('click', (e) => { e.preventDefault(); quill.getModule('table').insertColumnRight(); quill.focus(); });
+        document.getElementById('barDelRow').addEventListener('click', (e) => { e.preventDefault(); quill.getModule('table').deleteRow(); tableBar.style.display = 'none'; quill.focus(); });
+        document.getElementById('barDelCol').addEventListener('click', (e) => { e.preventDefault(); quill.getModule('table').deleteColumn(); tableBar.style.display = 'none'; quill.focus(); });
+
+        // ─── IMAGE HANDLER ───────────────────────────────────────────────────────
+        const imageModal = document.getElementById('imageModal');
+        document.getElementById('closeImageModal').addEventListener('click', () => imageModal.classList.remove('active'));
+        document.getElementById('insertImageBtn').addEventListener('click', () => {
+            const url = document.getElementById('imgUrlInput').value.trim(); if (!url) return;
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'telegramImage', { src: url, caption: document.getElementById('imgCapInput').value.trim(), credit: document.getElementById('imgCreditInput').value.trim() }, Quill.sources.USER);
+            quill.setSelection(range.index + 1, Quill.sources.SILENT); imageModal.classList.remove('active'); quill.focus();
+        });
+
+        // ─── RTL DETECTION ───────────────────────────────────────────────────────
         quill.on('editor-change', () => {
-            const lines = quill.root.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td');
-            lines.forEach(line => {
-                const text = line.textContent.trim();
+            const textElements = quill.root.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li');
+            textElements.forEach(el => {
+                const text = el.textContent.trim();
                 if (text.length > 0) {
-                    const isRtl = /[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\uFE70-\uFEFF]/.test(text.charAt(0));
-                    line.style.direction = isRtl ? 'rtl' : 'ltr';
-                    line.style.textAlign = isRtl ? 'right' : 'left';
+                    const firstChar = text.charAt(0); const isRtl = /[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\uFE70-\uFEFF]/.test(firstChar);
+                    el.style.direction = isRtl ? 'rtl' : 'ltr'; el.style.textAlign = isRtl ? 'right' : 'left';
+                    
+                    // مدیریت خودکار کلاس راست‌چین در ویرایشگر برای جلوگیری از به‌هم‌ریختگی لیست‌ها
+                    if (isRtl) {
+                        el.classList.add('ql-direction-rtl');
+                    } else {
+                        el.classList.remove('ql-direction-rtl');
+                    }
                 }
             });
         });
 
+        // ─── CONVERTER & DIV REMOVAL ─────────────────────────────────────────────
         function getTelegramStandardHtml() {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = quill.root.innerHTML;
 
-            const customFigures = Array.from(tempDiv.querySelectorAll('figure[data-src]'));
-            customFigures.forEach(fig => {
-                const src = fig.getAttribute('data-src');
-                const caption = fig.getAttribute('data-caption');
-                const credit = fig.getAttribute('data-credit');
-
-                const correctTelegramFigure = document.createElement('figure');
+            // 1. Convert Quill checklists to Telegram HTML checklist format
+            tempDiv.querySelectorAll('li[data-list="checked"], li[data-list="unchecked"]').forEach(li => {
+                const isChecked = li.getAttribute('data-list') === 'checked';
                 
-                const img = document.createElement('img');
-                img.setAttribute('src', src);
-                correctTelegramFigure.appendChild(img);
+                const checkbox = document.createElement('input');
+                checkbox.setAttribute('type', 'checkbox');
+                if (isChecked) {
+                    checkbox.setAttribute('checked', '');
+                }
+                
+                const qlUi = li.querySelector('.ql-ui');
+                if (qlUi) {
+                    qlUi.parentNode.removeChild(qlUi);
+                }
+                
+                li.insertBefore(checkbox, li.firstChild);
+                li.removeAttribute('data-list');
+                
+                const parent = li.parentNode;
+                if (parent && (parent.tagName === 'OL' || parent.tagName === 'UL')) {
+                    parent.setAttribute('data-checklist-parent', 'true');
+                }
+            });
 
+            tempDiv.querySelectorAll('[data-checklist-parent]').forEach(parent => {
+                const ul = document.createElement('ul');
+                while (parent.firstChild) {
+                    ul.appendChild(parent.firstChild);
+                }
+                parent.parentNode.replaceChild(ul, parent);
+            });
+
+            // 2. Math block and inline restoration
+            tempDiv.querySelectorAll('tg-math-block').forEach(mathNode => {
+                const formulaText = mathNode.getAttribute('data-formula');
+                const cleanMath = document.createElement('tg-math-block');
+                cleanMath.textContent = `$${formulaText}$`;
+                mathNode.parentNode.replaceChild(cleanMath, mathNode);
+            });
+            tempDiv.querySelectorAll('tg-math').forEach(mathNode => {
+                const formulaText = mathNode.getAttribute('data-formula');
+                const cleanMath = document.createElement('tg-math');
+                cleanMath.textContent = `$${formulaText}$`;
+                mathNode.parentNode.replaceChild(cleanMath, mathNode);
+            });
+
+            // 2.5 Collapsible Details Block Restoration
+            tempDiv.querySelectorAll('tg-details-block').forEach(detailsNode => {
+                const title = detailsNode.getAttribute('data-title') || '';
+                const content = detailsNode.getAttribute('data-content') || '';
+                const open = detailsNode.getAttribute('data-open') === 'true';
+                
+                const cleanDetails = document.createElement('details');
+                if (open) {
+                    // فعال کردن اتریبیوت به صورت استاندارد بدون مقدار دادن اضافه
+                    cleanDetails.setAttribute('open', ''); 
+                }
+                
+                // ساخت ساختارمند تگ summary
+                const summaryNode = document.createElement('summary');
+                summaryNode.textContent = title;
+                cleanDetails.appendChild(summaryNode);
+                
+                // ساخت ساختارمند محتوا برای پشتیبانی از خطوط جدید (\n به <br>)
+                const contentWrapper = document.createElement('span'); // یا استفاده از مستندات متنی
+                contentWrapper.innerHTML = content.replace(/\n/g, '<br>');
+                
+                // انتقال فرزندان محتوا به داخل details
+                while (contentWrapper.firstChild) {
+                    cleanDetails.appendChild(contentWrapper.firstChild);
+                }
+                
+                detailsNode.parentNode.replaceChild(cleanDetails, detailsNode);
+            });
+
+            // 3. Images structures
+            tempDiv.querySelectorAll('figure[data-src]').forEach(fig => {
+                const src = fig.getAttribute('data-src'), caption = fig.getAttribute('data-caption'), credit = fig.getAttribute('data-credit');
+                const newFig = document.createElement('figure'); const img = document.createElement('img'); img.setAttribute('src', src); newFig.appendChild(img);
                 if (caption || credit) {
                     const figcaption = document.createElement('figcaption');
-                    if (caption) {
-                        figcaption.appendChild(document.createTextNode(caption));
-                    }
-                    if (credit) {
-                        const cite = document.createElement('cite');
-                        cite.appendChild(document.createTextNode(credit));
-                        figcaption.appendChild(cite);
-                    }
-                    correctTelegramFigure.appendChild(figcaption);
+                    if (caption) figcaption.appendChild(document.createTextNode(caption));
+                    if (credit) { const cite = document.createElement('cite'); cite.appendChild(document.createTextNode(credit)); figcaption.appendChild(cite); }
+                    newFig.appendChild(figcaption);
                 }
-                fig.parentNode.replaceChild(correctTelegramFigure, fig);
+                fig.parentNode.replaceChild(newFig, fig);
             });
 
-            const codeLines = Array.from(tempDiv.querySelectorAll('.ql-code-block'));
-            if (codeLines.length > 0) {
-                let currentPre = null;
-                codeLines.forEach((line) => {
-                    const langAttr = line.getAttribute('data-language');
-                    if (!currentPre || line.previousElementSibling !== currentPre && !line.previousElementSibling?.classList.contains('ql-code-block')) {
-                        currentPre = document.createElement('pre');
-                        if (langAttr && langAttr !== 'plain') {
-                            currentPre.className = `language-${langAttr}`;
-                        }
-                        line.parentNode.insertBefore(currentPre, line);
-                    }
-                    currentPre.textContent += line.textContent + '\n';
-                    line.parentNode.removeChild(line);
+            // 4. Blockquotes merge
+            const allBlockquotes = Array.from(tempDiv.querySelectorAll('blockquote'));
+            if (allBlockquotes.length > 0) {
+                const bqGroups = []; let currentBqGroup = [allBlockquotes[0]];
+                for (let i = 1; i < allBlockquotes.length; i++) {
+                    if (allBlockquotes[i - 1].nextElementSibling === allBlockquotes[i]) currentBqGroup.push(allBlockquotes[i]);
+                    else { bqGroups.push(currentBqGroup); currentBqGroup = [allBlockquotes[i]]; }
+                }
+                bqGroups.push(currentBqGroup);
+                bqGroups.forEach(group => {
+                    if (group.length === 1) return; const merged = document.createElement('blockquote');
+                    group.forEach((bq, idx) => { if (idx > 0) merged.appendChild(document.createElement('br')); while (bq.firstChild) merged.appendChild(bq.firstChild); });
+                    group[0].parentNode.insertBefore(merged, group[0]); group.forEach(bq => bq.parentNode.removeChild(bq));
                 });
             }
 
-            const quoteLines = Array.from(tempDiv.querySelectorAll('blockquote'));
-            if (quoteLines.length > 0) {
-                let currentBlockquote = null;
-                quoteLines.forEach((line) => {
-                    if (!currentBlockquote || line.previousElementSibling !== currentBlockquote && line.previousElementSibling?.tagName !== 'BLOCKQUOTE') {
-                        currentBlockquote = document.createElement('blockquote');
-                        line.parentNode.insertBefore(currentBlockquote, line);
-                    } else {
-                        currentBlockquote.appendChild(document.createElement('br'));
-                    }
-                    while(line.firstChild) { currentBlockquote.appendChild(line.firstChild); }
-                    line.parentNode.removeChild(line);
-                });
-            }
-
-            // بازسازی و پاکسازی ساختار لیست‌ها بر اساس نوع دیتای واقعی آیتم‌ها
-            const listItems = Array.from(tempDiv.querySelectorAll('li'));
-            if (listItems.length > 0) {
-                let currentNewList = null;
-                let currentType = null;
-
-                listItems.forEach(li => {
-                    const isStandardOl = li.parentNode && li.parentNode.tagName.toLowerCase() === 'ol';
-                    const isBullet = li.getAttribute('data-list') === 'bullet' || (!isStandardOl && !li.getAttribute('data-list'));
-                    const targetType = isBullet ? 'ul' : 'ol';
-
-                    if (!currentNewList || currentType !== targetType || li.previousElementSibling?.tagName !== 'LI') {
-                        currentNewList = document.createElement(targetType);
-                        currentType = targetType;
-                        li.parentNode.insertBefore(currentNewList, li);
-                    }
-
-                    const cleanLi = document.createElement('li');
-                    cleanLi.innerHTML = li.innerHTML;
-                    
-                    // حذف تگ‌های span اضافه درون لیست
-                    const spans = cleanLi.querySelectorAll('span');
-                    spans.forEach(s => {
-                        if(!s.textContent.trim()) { s.parentNode.removeChild(s); }
-                        else { s.parentNode.replaceChild(document.createTextNode(s.textContent), s); }
-                    });
-
-                    currentNewList.appendChild(cleanLi);
-                    li.parentNode.removeChild(li);
-                });
-            }
-
-            // پاکسازی تگ‌های خالی لیست قدیمی
-            Array.from(tempDiv.querySelectorAll('ol, ul')).forEach(el => {
-                if (el.children.length === 0) el.parentNode.removeChild(el);
-            });
-
-            const tables = Array.from(tempDiv.querySelectorAll('table'));
-            tables.forEach(table => {
-                table.setAttribute('bordered', '');
-                table.setAttribute('striped', '');
+            // 5. Tables th transformation
+            tempDiv.querySelectorAll('table').forEach(table => {
+                table.setAttribute('bordered', ''); table.setAttribute('striped', '');
                 const rows = Array.from(table.querySelectorAll('tr'));
                 if (rows.length > 0) {
-                    const firstRowCells = Array.from(rows[0].querySelectorAll('td'));
-                    firstRowCells.forEach(cell => {
-                        const th = document.createElement('th');
-                        while(cell.firstChild) { th.appendChild(cell.firstChild); }
-                        cell.parentNode.replaceChild(th, cell);
+                    Array.from(rows[0].querySelectorAll('td')).forEach(cell => {
+                        const th = document.createElement('th'); while (cell.firstChild) th.appendChild(cell.firstChild); cell.parentNode.replaceChild(th, cell);
                     });
                 }
             });
 
-            const allElements = tempDiv.getElementsByTagName('*');
-            for (let i = 0; i < allElements.length; i++) {
-                const el = allElements[i];
-                const attrs = Array.from(el.attributes);
-                attrs.forEach(attr => {
-                    if (
-                        attr.name !== 'href' && 
-                        attr.name !== 'src' && 
-                        attr.name !== 'bordered' && 
-                        attr.name !== 'striped' && 
-                        attr.name !== 'colspan' && 
-                        attr.name !== 'rowspan' && 
-                        !(el.tagName === 'PRE' && attr.name === 'class')
-                    ) {
-                        el.removeAttribute(attr.name);
-                    }
+            // ⚠️ CRITICAL: RECURSIVELY UNWRAP ALL DIV TAGS
+            let divs = tempDiv.querySelectorAll('div');
+            while (divs.length > 0) {
+                divs.forEach(div => {
+                    while (div.firstChild) { div.parentNode.insertBefore(div.firstChild, div); }
+                    div.parentNode.removeChild(div);
                 });
+                divs = tempDiv.querySelectorAll('div');
             }
 
-            let rawHtml = tempDiv.innerHTML;
-            const blockTags = ['p', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'table', 'tr', 'th', 'td', 'figure', 'figcaption', 'hr'];
-            blockTags.forEach(tag => {
-                const openReg = new RegExp(`(<${tag}[^>]*>)`, 'g');
-                const closeReg = new RegExp(`(</${tag}>)`, 'g');
-                rawHtml = rawHtml.replace(openReg, '\n$1');
-                rawHtml = rawHtml.replace(closeReg, '$1\n');
+            // 6. Scrub non-telegram attributes safely
+            Array.from(tempDiv.getElementsByTagName('*')).forEach(el => {
+                Array.from(el.attributes).forEach(attr => {
+                    const keep = attr.name === 'href' || 
+                                 attr.name === 'src' || 
+                                 attr.name === 'bordered' || 
+                                 attr.name === 'striped' || 
+                                 attr.name === 'colspan' || 
+                                 attr.name === 'rowspan' || 
+                                 attr.name === 'open' || 
+                                 (el.tagName === 'PRE' && attr.name === 'class') ||
+                                 (el.tagName === 'INPUT' && (attr.name === 'type' || attr.name === 'checked'));
+                    if (!keep) el.removeAttribute(attr.name);
+                });
             });
 
+            let rawHtml = tempDiv.innerHTML;
+            const blockTags = ['p', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'tr', 'th', 'td', 'figure', 'figcaption', 'hr', 'tg-math-block', 'details', 'summary'];
+            blockTags.forEach(tag => {
+                rawHtml = rawHtml.replace(new RegExp(`(<${tag}[^>]*>)`, 'g'), '\n$1'); rawHtml = rawHtml.replace(new RegExp(`(</${tag}>)`, 'g'), '$1\n');
+            });
             return rawHtml.trim().replace(/\n\s*\n/g, '\n');
         }
 
-        quill.on('text-change', function() { preview.textContent = getTelegramStandardHtml(); });
+        const preview = document.getElementById('preview');
+        quill.on('text-change', () => { preview.textContent = getTelegramStandardHtml(); });
         preview.textContent = getTelegramStandardHtml();
 
-        sendBtn.addEventListener('click', () => {
+        const modalOverlay = document.getElementById('modalOverlay');
+        document.getElementById('sendBtn').addEventListener('click', () => {
             const cleanHtml = getTelegramStandardHtml();
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(cleanHtml).then(() => {
-                    modalOverlay.classList.add('active');
-                }).catch(() => { fallbackCopy(cleanHtml); });
-            } else { fallbackCopy(cleanHtml); }
+            if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(cleanHtml).then(() => modalOverlay.classList.add('active')).catch(() => fallbackCopy(cleanHtml)); } 
+            else { fallbackCopy(cleanHtml); }
         });
 
         function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus(); textArea.select();
-            try {
-                document.execCommand('copy');
-                modalOverlay.classList.add('active');
-            } catch (err) {
-                alert('خطا در کپی! لطفاً خروجی انتهای صفحه را دستی کپی کنید.');
-            }
-            document.body.removeChild(textArea);
+            const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.focus(); ta.select();
+            try { document.execCommand('copy'); modalOverlay.classList.add('active'); } catch { alert('Copy error!'); }
+            document.body.removeChild(ta);
         }
-
-        modalClose.addEventListener('click', () => modalOverlay.classList.remove('active'));
+        document.getElementById('modalClose').addEventListener('click', () => modalOverlay.classList.remove('active'));
     </script>
 </body>
 </html>
